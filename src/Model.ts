@@ -145,8 +145,9 @@ export default class Model<DataType extends Optional<TimeStampsType>> {
       }
 
       if (Reflect.has(options, 'limit') && options.limit) {
+        const page = options.page || 0;
         // slice data
-        result = result.slice(0, +options.limit);
+        result = result.slice(page * options.limit, (page + 1) * options.limit);
       }
 
       return result;
@@ -169,7 +170,7 @@ export default class Model<DataType extends Optional<TimeStampsType>> {
         } catch (e) {
           // No primary key found
         }
-        if (this.table.timestamps) data.createdAt = Date.now();
+        if (this.table.timestamps) data.updatedAt = Date.now();
         const save = store.put(data);
         save.onsuccess = () => {
           resolve(

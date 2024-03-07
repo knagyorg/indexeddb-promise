@@ -146,28 +146,52 @@ export class Database {
   }
 
   private static async onUpgradeNeeded(db: IDBDatabase, database: ConfigType, oldVersion: number) {
-    for (const table of database.tables) {
-      if ((oldVersion < database.version && oldVersion) || db.objectStoreNames.contains(table.name)) {
-        db.deleteObjectStore(table.name);
-        console.info(`[${database.name}]: DB version changed, removing table: ${table.name} for the fresh start`);
+    // Delete removed tables
+    if (oldVersion < database.version && oldVersion) {
+      for (let i = 0; i < db.objectStoreNames.length; i++) {
+        const tableName = db.objectStoreNames.item(i);
+        if (database.tables.findIndex((t) => t.name === tableName) === -1) {
+          db.deleteObjectStore(tableName);
+          console.info(`[${database.name}]: DB version changed, removing table: ${tableName}`);
+        }
       }
-      const store = db.createObjectStore(table.name, {
-        keyPath: table.primaryKey?.name || 'id',
-        autoIncrement: table.primaryKey?.autoIncrement || true,
-      });
+    }
+
+    for (const table of database.tables) {
+      // if ((oldVersion < database.version && oldVersion) || db.objectStoreNames.contains(table.name)) {
+      //   db.deleteObjectStore(table.name);
+      //   console.info(`[${database.name}]: DB version changed, removing table: ${table.name} for the fresh start`);
+      // }
+      let store,
+        initialValues = false;
+      if (!db.objectStoreNames.contains(table.name)) {
+        store = db.createObjectStore(table.name, {
+          keyPath: table.primaryKey?.name || 'id',
+          autoIncrement: table.primaryKey?.autoIncrement || true,
+        });
+        initialValues = true;
+      } else {
+        store = db.transaction(database.name).objectStore(table.name);
+      }
 
       Database.createIndexes(store, table.indexes);
-      Database.insertInitialValues(store, table);
+      if (initialValues) {
+        Database.insertInitialValues(store, table);
+      }
     }
   }
 
   private static createIndexes(store: IDBObjectStore, indexes: TableType['indexes']): void {
     for (const key in indexes) {
       if (key in indexes) {
-        store.createIndex(key, key, {
-          unique: !!indexes[key].unique,
-          multiEntry: !!indexes[key].multiEntry,
-        });
+        try {
+          store.createIndex(key, key, {
+            unique: !!indexes[key].unique,
+            multiEntry: !!indexes[key].multiEntry,
+          });
+        } catch (e) {
+          // Ignore
+        }
       }
     }
   }

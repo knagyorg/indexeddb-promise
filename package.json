@@ -1,6 +1,6 @@
 {
-  "name": "@n1md7/indexeddb-promise",
-  "version": "7.1.1",
+  "name": "@knagyorg/indexeddb-promise",
+  "version": "1.0.1",
   "description": "Indexed DB wrapper with promises",
   "main": "./lib/index.js",
   "scripts": {
@@ -12,7 +12,8 @@
     "format": "npx prettier --write --ignore-unknown './(src|tests)/**/*.(j|t)s'",
     "test": "npx jest --coverage --ci",
     "prepare": "husky install",
-    "serve": "npx http-server -o /docs ."
+    "serve": "npx http-server -o /docs .",
+    "publishing": "yarn build && npm publish --access public"
   },
   "author": "Harry Kodua",
   "license": "MIT",

@@ -32,6 +32,7 @@ export type OptionsWhereAsObject<T extends keyof any = any> = {
 export type OptionsType<I, T extends keyof any = any> = {
   where?: OptionsWhereAsObject<T> | OptionsWhereAsCallback<I>;
   limit?: number;
+  page?: number;
   orderByDESC?: boolean;
   sortBy?: keyof I | keyof I[];
 };
