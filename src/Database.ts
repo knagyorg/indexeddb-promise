@@ -101,8 +101,14 @@ export class Database {
         );
       };
 
-      request.onupgradeneeded = (event) =>
-        Database.onUpgradeNeeded(request.result, this.config as ConfigType, event.oldVersion);
+      request.onupgradeneeded = async (event) => {
+        console.info(
+          `[${this.databaseName}]: Database version changed. ${event.oldVersion} -> ${this.databaseVersion}`,
+        );
+        console.info(`[${this.databaseName}]: Database version changed ${request}`);
+        console.info(`[${this.databaseName}]: Database version changed ${request.result}`);
+        await Database.onUpgradeNeeded(request.result, this.config as ConfigType, event.oldVersion);
+      };
     });
   }
 
@@ -148,8 +154,12 @@ export class Database {
   private static async onUpgradeNeeded(db: IDBDatabase, database: ConfigType, oldVersion: number) {
     // Delete removed tables
     if (oldVersion < database.version && oldVersion) {
+      const tables = [];
       for (let i = 0; i < db.objectStoreNames.length; i++) {
         const tableName = db.objectStoreNames.item(i);
+        tables.push(tableName);
+      }
+      for (const tableName of tables) {
         if (database.tables.findIndex((t) => t.name === tableName) === -1) {
           db.deleteObjectStore(tableName);
           console.info(`[${database.name}]: DB version changed, removing table: ${tableName}`);
@@ -162,6 +172,11 @@ export class Database {
       //   db.deleteObjectStore(table.name);
       //   console.info(`[${database.name}]: DB version changed, removing table: ${table.name} for the fresh start`);
       // }
+      console.info(
+        `[${database.name}]: DB version changed, check table: ${table.name}, is new: ${!db.objectStoreNames.contains(
+          table.name,
+        )}`,
+      );
       let store,
         initialValues = false;
       if (!db.objectStoreNames.contains(table.name)) {
@@ -171,7 +186,9 @@ export class Database {
         });
         initialValues = true;
       } else {
-        store = db.transaction(database.name).objectStore(table.name);
+        continue;
+        //KN20240307 nefunguje ziskani objectStore. db.transaction je undefined
+        // store = db.transaction(database.name).objectStore(table.name);
       }
 
       Database.createIndexes(store, table.indexes);
@@ -182,9 +199,11 @@ export class Database {
   }
 
   private static createIndexes(store: IDBObjectStore, indexes: TableType['indexes']): void {
+    console.info(`DB version changed, create index for table ${store.name}`);
     for (const key in indexes) {
       if (key in indexes) {
         try {
+          console.info(`    create index ${key}`);
           store.createIndex(key, key, {
             unique: !!indexes[key].unique,
             multiEntry: !!indexes[key].multiEntry,
