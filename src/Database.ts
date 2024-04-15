@@ -11,6 +11,7 @@ export class Database {
   protected readonly databaseName: string = 'DefaultDatabase';
   protected readonly tables: string[] = ['DefaultTable'];
   protected readonly databaseVersion: number = 1;
+  protected oldDatabaseVersion: number = 1;
 
   static indexedDB: IDBFactory;
 
@@ -107,6 +108,7 @@ export class Database {
         );
         console.info(`[${this.databaseName}]: Database version changed ${request}`);
         console.info(`[${this.databaseName}]: Database version changed ${request.result}`);
+        this.oldDatabaseVersion = event.oldVersion;
         await Database.onUpgradeNeeded(request.result, this.config as ConfigType, event.oldVersion);
       };
     });
