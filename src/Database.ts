@@ -74,6 +74,7 @@ export class Database {
     this.tables = this.config.tables?.map((table) => table.name);
     this.databaseName = this.config.name;
     this.databaseVersion = this.config.version;
+    this.oldDatabaseVersion = this.config.version;
   }
 
   public connect(): Promise<IDBDatabase> {
