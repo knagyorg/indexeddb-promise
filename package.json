@@ -1,6 +1,6 @@
 {
   "name": "@knagyorg/indexeddb-promise",
-  "version": "1.0.8",
+  "version": "1.0.12",
   "description": "Indexed DB wrapper with promises",
   "main": "./lib/index.js",
   "scripts": {

@@ -110,7 +110,8 @@ export class Database {
         console.info(`[${this.databaseName}]: Database version changed ${request}`);
         console.info(`[${this.databaseName}]: Database version changed ${request.result}`);
         this.oldDatabaseVersion = event.oldVersion;
-        await Database.onUpgradeNeeded(request.result, this.config as ConfigType, event.oldVersion);
+        const db = request.result;
+        await Database.onUpgradeNeeded(db, this.config as ConfigType, event.oldVersion);
       };
     });
   }
@@ -180,23 +181,17 @@ export class Database {
           table.name,
         )}`,
       );
-      let store,
-        initialValues = false;
       if (!db.objectStoreNames.contains(table.name)) {
-        store = db.createObjectStore(table.name, {
+        const store = db.createObjectStore(table.name, {
           keyPath: table.primaryKey?.name || 'id',
           autoIncrement: table.primaryKey?.autoIncrement || true,
         });
-        initialValues = true;
-      } else {
-        continue;
-        //KN20240307 nefunguje ziskani objectStore. db.transaction je undefined
-        // store = db.transaction(database.name).objectStore(table.name);
-      }
-
-      Database.createIndexes(store, table.indexes);
-      if (initialValues) {
+        Database.createIndexes(store, table.indexes);
         Database.insertInitialValues(store, table);
+      } else {
+        //KN20240307 nefunguje ziskani objectStore. db.transaction je undefined
+        // const store = db.transaction(database.name).objectStore(table.name);
+        // Database.createIndexes(store, table.indexes);
       }
     }
   }
