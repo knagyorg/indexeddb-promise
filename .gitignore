@@ -5,4 +5,5 @@ reports
 lib
 build
 dist
+yarn.lock
 examples/indexed-db.min.js

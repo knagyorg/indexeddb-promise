@@ -111,7 +111,7 @@ export class Database {
         console.info(`[${this.databaseName}]: Database version changed ${request.result}`);
         this.oldDatabaseVersion = event.oldVersion;
         const db = request.result;
-        await Database.onUpgradeNeeded(db, this.config as ConfigType, event.oldVersion);
+        await Database.onUpgradeNeeded(db, request.transaction, this.config as ConfigType, event.oldVersion);
       };
     });
   }
@@ -155,7 +155,12 @@ export class Database {
     });
   }
 
-  private static async onUpgradeNeeded(db: IDBDatabase, database: ConfigType, oldVersion: number) {
+  private static async onUpgradeNeeded(
+    db: IDBDatabase,
+    transaction: IDBTransaction,
+    database: ConfigType,
+    oldVersion: number,
+  ) {
     // Delete removed tables
     if (oldVersion < database.version && oldVersion) {
       const tables = [];
@@ -190,8 +195,8 @@ export class Database {
         Database.insertInitialValues(store, table);
       } else {
         //KN20240307 nefunguje ziskani objectStore. db.transaction je undefined
-        // const store = db.transaction(database.name).objectStore(table.name);
-        // Database.createIndexes(store, table.indexes);
+        const store = transaction.objectStore(table.name);
+        Database.createIndexes(store, table.indexes);
       }
     }
   }
@@ -200,6 +205,9 @@ export class Database {
     console.info(`DB version changed, create index for table ${store.name}`);
     for (const key in indexes) {
       if (key in indexes) {
+        if (store.indexNames.contains(key)) {
+          continue;
+        }
         try {
           console.info(`    create index ${key}`);
           store.createIndex(key, key, {

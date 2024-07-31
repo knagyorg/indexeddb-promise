@@ -1,6 +1,6 @@
 {
   "name": "@knagyorg/indexeddb-promise",
-  "version": "1.0.12",
+  "version": "1.0.17",
   "description": "Indexed DB wrapper with promises",
   "main": "./lib/index.js",
   "scripts": {
@@ -88,9 +88,9 @@
     ]
   },
   "peerDependencies": {
-    "reflect-metadata": "^0.1.13",
     "class-transformer": "^0.5.1",
-    "joi": "^17.5.0"
+    "joi": "^17.5.0",
+    "reflect-metadata": "^0.1.13"
   },
   "engines": {
     "node": ">=14.0.0",
